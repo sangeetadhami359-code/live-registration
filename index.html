@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Event Registration Portal</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- EmailJS CDN -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+  <!-- 4-Second Animated Splash Screen -->
+  <div id="splashScreen" class="splash-screen">
+    <div class="splash-content">
+      <!-- Wi-Fi Pulse Logo -->
+      <div class="splash-logo-container">
+        <div class="pulse-ring ring-1"></div>
+        <div class="pulse-ring ring-2"></div>
+        <div class="pulse-ring ring-3"></div>
+        <div class="splash-icon-box">
+          <i data-lucide="wifi"></i>
+        </div>
+      </div>
+      <!-- Titles -->
+      <h1 class="splash-title">Live Event Portal</h1>
+      <span class="splash-subtitle">Registration Desk Console</span>
+      
+      <!-- Progress Bar -->
+      <div class="splash-progress-bar">
+        <div class="splash-progress-fill"></div>
+      </div>
+      
+      <!-- Loading Info -->
+      <div class="splash-loading-text">Initializing desk credentials...</div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Main App Wrapper (Initially hidden during splash screen) -->
+  <div id="appContainer" class="app-container hidden-opacity">
+    
+    <!-- Header Banner -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="wifi"></i>
+        </div>
+        <div class="brand-info">
+          <h1>Live Event Portal</h1>
+          <span>Registration Desk Console</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Configuration Toggle (Gear) -->
+        <button id="configToggleBtn" class="btn btn-secondary" title="Configure EmailJS Credentials">
+          <i data-lucide="settings"></i>
+          <span>Setup Email</span>
+        </button>
+
+        <!-- Kiosk Mode Toggle -->
+        <button id="kioskToggleBtn" class="btn btn-secondary kiosk-toggle" title="Toggle student self-service mode">
+          <i data-lucide="monitor"></i>
+          <span id="kioskStatusText">Kiosk Mode</span>
+        </button>
+
+        <!-- Network Status Badge -->
+        <div class="status-indicator">
+          <div id="statusDot" class="status-dot"></div>
+          <span id="statusText">Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Configuration Modal overlay -->
+    <div id="configModal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3><i data-lucide="sliders"></i> EmailJS Configuration</h3>
+          <button id="closeConfigBtn" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            To send live emails to registered students from the browser, sign up at <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> and enter your parameters below:
+          </p>
+          <div class="form-group">
+            <label for="emailjsPublicKey">EmailJS Public Key</label>
+            <input type="text" id="emailjsPublicKey" placeholder="e.g. user_A8x... or Public Key">
+          </div>
+          <div class="form-group">
+            <label for="emailjsServiceId">EmailJS Service ID (e.g. Gmail)</label>
+            <input type="text" id="emailjsServiceId" placeholder="e.g. service_gmail">
+          </div>
+          <div class="form-group">
+            <label for="emailjsTemplateId">EmailJS Template ID</label>
+            <input type="text" id="emailjsTemplateId" placeholder="e.g. template_wifi">
+          </div>
+          
+          <div class="modal-tip">
+            <strong>Variables for your template:</strong><br>
+            Use <code>{{student_name}}</code>, <code>{{student_email}}</code>, <code>{{student_id}}</code>, <code>{{wifi_ssid}}</code>, and <code>{{wifi_password}}</code> in your EmailJS template.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveConfigBtn" class="btn btn-primary btn-block">Save Configuration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <main class="main-grid">
+      
+      <!-- LEFT COLUMN: Registration Card -->
+      <section class="card registration-card shadow-indigo-glow">
+        <!-- Active Form State -->
+        <div id="registrationFormState">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i data-lucide="plus-circle" style="color: var(--accent-cyan-hex);"></i>
+              New Registration
+            </h2>
+            <button id="quickFillBtn" class="btn btn-secondary btn-sm" title="Generate mock student details to test flows">
+              Quick Fill
+            </button>
+          </div>
+
+          <form id="registrationForm" class="form">
+            <!-- Student ID -->
+            <div class="form-group">
+              <label for="studentId">Student ID <span>*</span></label>
+              <div class="input-wrapper">
+                <i data-lucide="hash" class="input-icon"></i>
+                <input type="text" id="studentId" required placeholder="e.g. STU-8823" autocomplete="off">
+              </div>
+              <span id="errorStudentId" class="error-text"></span>
+            </div>
+
+            <!-- Full Name -->
+            <div class="form-group">
+              <label for="studentName">Full Name <span>*</span></label>
+              <div class="input-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <input type="text" id="studentName" required placeholder="e.g. Alice Smith" autocomplete="off">
+              </div>
+              <span id="errorStudentName" class="error-text"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="studentEmail">Email Address <span>*</span></label>
+              <div class="input-wrapper">
+                <i data-lucide="mail" class="input-icon"></i>
+                <input type="email" id="studentEmail" required placeholder="e.g. alice@university.edu" autocomplete="off">
+              </div>
+              <span id="errorStudentEmail" class="error-text"></span>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+              <i data-lucide="check"></i>
+              <span>Complete Check-in</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Success Confirmation State (Hidden by default) -->
+        <div id="successState" class="success-overlay hidden">
+          <div class="success-icon-wrapper">
+            <i data-lucide="check-circle"></i>
+          </div>
+          <h2>Registered!</h2>
+          <p class="success-subtitle">Wi-Fi password is on its way to their inbox</p>
+
+          <div class="success-wifi-details">
+            <div class="success-row">
+              <span class="success-label">Name:</span>
+              <span id="successName" class="success-value-text">Alice Smith</span>
+            </div>
+            <div class="success-row">
+              <span class="success-label">Email:</span>
+              <span id="successEmail" class="success-value-text text-mono">alice@university.edu</span>
+            </div>
+            <hr class="success-divider">
+            <div class="success-row">
+              <span class="success-label">SSID (Network):</span>
+              <span id="successSsid" class="success-wifi-badge">Auditorium-Guest-HighSpeed</span>
+            </div>
+            <div class="success-row">
+              <span class="success-label">Password:</span>
+              <span id="successPassword" class="success-wifi-badge">LiveEvent2026!</span>
+            </div>
+          </div>
+
+          <button id="registerNextBtn" class="btn btn-primary btn-block">
+            <i data-lucide="plus"></i>
+            Register Next Student
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Dashboard & Attendee Table (Hidden in Kiosk Mode) -->
+      <section id="adminDashboardSection" class="dashboard-column">
+        
+        <!-- Live Stat Cards -->
+        <div class="stat-grid">
+          <div class="stat-card" id="statTotalCard">
+            <div class="stat-icon-wrapper stat-blue">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="stat-details">
+              <span id="statTotal" class="stat-value">0</span>
+              <span class="stat-label">Total Registered</span>
+            </div>
+          </div>
+
+          <div class="stat-card" id="statSentCard">
+            <div class="stat-icon-wrapper stat-green">
+              <i data-lucide="check"></i>
+            </div>
+            <div class="stat-details">
+              <span id="statSent" class="stat-value">0</span>
+              <span class="stat-label">Mails Dispatched</span>
+            </div>
+          </div>
+
+          <div class="stat-card" id="statFailedCard">
+            <div class="stat-icon-wrapper stat-rose">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="stat-details">
+              <span id="statFailed" class="stat-value">0</span>
+              <span class="stat-label">Delivery Failures</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry List Card -->
+        <div class="card table-card shadow-cyan-glow">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Student Attendee Registry</h2>
+              <p class="card-subtitle">Monitor status and manage credentials from this console</p>
+            </div>
+            <button id="exportCsvBtn" class="btn btn-secondary" title="Export registrations as a CSV sheet">
+              <i data-lucide="download"></i>
+              <span>Export CSV</span>
+            </button>
+          </div>
+
+          <!-- Quick Filter Chips (UI/UX Improvement) -->
+          <div class="filter-chips-container">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="sent">Sent</button>
+            <button class="filter-chip" data-filter="failed">Failed</button>
+            <button class="filter-chip" data-filter="mock">Mock</button>
+          </div>
+
+          <!-- Table Search Controls -->
+          <div class="table-controls">
+            <div class="search-wrapper">
+              <i data-lucide="search" class="input-icon"></i>
+              <input type="text" id="searchInput" placeholder="Search by ID, Name or Email...">
+              <button id="clearSearchBtn" class="clear-search-btn hidden">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+            <button id="refreshBtn" class="icon-btn" title="Refresh registry table list">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+          </div>
+
+          <!-- Attendee Table Wrapper -->
+          <div class="table-container">
+            <table id="attendeeTable" class="table">
+              <thead>
+                <tr>
+                  <th>Student Details</th>
+                  <th>Registered At</th>
+                  <th>Email Status</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                <!-- Rows injected dynamically via JS -->
+              </tbody>
+            </table>
+            
+            <!-- Empty state graphic -->
+            <div id="emptyState" class="empty-state hidden">
+              <i data-lucide="search" class="empty-icon"></i>
+              <h4>No attendees found</h4>
+              <span>Register a new student or clear your filters to populate list.</span>
+            </div>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div id="paginationContainer" class="pagination-bar hidden">
+            <span id="paginationInfo" class="pagination-info">Showing 1 to 8 of 8 attendees</span>
+            <div class="pagination-buttons">
+              <button id="prevPageBtn" class="btn btn-sm btn-secondary">Prev</button>
+              <button id="nextPageBtn" class="btn btn-sm btn-secondary">Next</button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Lucide Icon Library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>

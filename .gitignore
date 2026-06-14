@@ -1,0 +1,13 @@
+# OS temporary files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE config files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
