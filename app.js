@@ -22,6 +22,8 @@ const registrationForm = document.getElementById('registrationForm');
 const studentIdInput = document.getElementById('studentId');
 const studentNameInput = document.getElementById('studentName');
 const studentEmailInput = document.getElementById('studentEmail');
+const studentUniversityInput = document.getElementById('studentUniversity');
+const studentClassInput = document.getElementById('studentClass');
 const submitBtn = document.getElementById('submitBtn');
 const submitBtnText = submitBtn.querySelector('span');
 
@@ -29,6 +31,8 @@ const registrationFormState = document.getElementById('registrationFormState');
 const successState = document.getElementById('successState');
 const successName = document.getElementById('successName');
 const successEmail = document.getElementById('successEmail');
+const successUniversity = document.getElementById('successUniversity');
+const successClass = document.getElementById('successClass');
 const successSsid = document.getElementById('successSsid');
 const successPassword = document.getElementById('successPassword');
 const registerNextBtn = document.getElementById('registerNextBtn');
@@ -244,6 +248,20 @@ function bindEventHandlers() {
     }
   });
 
+  studentEmailInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      studentUniversityInput.focus();
+    }
+  });
+
+  studentUniversityInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      studentClassInput.focus();
+    }
+  });
+
   // UI/UX Improvement: Filter Chip bindings
   const filterChips = document.querySelectorAll('.filter-chip');
   filterChips.forEach(chip => {
@@ -313,16 +331,20 @@ function bindEventHandlers() {
 }
 
 // --- Form Validation Helper ---
-function validateForm(studentId, name, email) {
+function validateForm(studentId, name, email, university, className) {
   let isValid = true;
 
   // Clear previous errors
   document.getElementById('errorStudentId').textContent = '';
   document.getElementById('errorStudentName').textContent = '';
   document.getElementById('errorStudentEmail').textContent = '';
+  document.getElementById('errorStudentUniversity').textContent = '';
+  document.getElementById('errorStudentClass').textContent = '';
   studentIdInput.classList.remove('input-error');
   studentNameInput.classList.remove('input-error');
   studentEmailInput.classList.remove('input-error');
+  studentUniversityInput.classList.remove('input-error');
+  studentClassInput.classList.remove('input-error');
 
   if (!studentId) {
     document.getElementById('errorStudentId').textContent = 'Student ID is required';
@@ -353,6 +375,18 @@ function validateForm(studentId, name, email) {
     }
   }
 
+  if (!university) {
+    document.getElementById('errorStudentUniversity').textContent = 'University name is required';
+    studentUniversityInput.classList.add('input-error');
+    isValid = false;
+  }
+
+  if (!className) {
+    document.getElementById('errorStudentClass').textContent = 'Class / Course is required';
+    studentClassInput.classList.add('input-error');
+    isValid = false;
+  }
+
   return isValid;
 }
 
@@ -363,8 +397,10 @@ async function handleRegistrationSubmit(e) {
   const id = studentIdInput.value.trim();
   const name = studentNameInput.value.trim();
   const email = studentEmailInput.value.trim().toLowerCase();
+  const university = studentUniversityInput.value.trim();
+  const className = studentClassInput.value.trim();
 
-  if (!validateForm(id, name, email)) return;
+  if (!validateForm(id, name, email, university, className)) return;
 
   // Duplicate check (case-insensitive)
   const duplicateId = registry.find(s => s.id.toLowerCase() === id.toLowerCase());
@@ -388,6 +424,8 @@ async function handleRegistrationSubmit(e) {
     id,
     name,
     email,
+    university,
+    class: className,
     timestamp: new Date().toISOString(),
     emailSent: false,
     emailSentAt: null,
@@ -429,6 +467,8 @@ async function handleRegistrationSubmit(e) {
   currentSuccessStudent = student;
   successName.textContent = student.name;
   successEmail.textContent = student.email;
+  successUniversity.textContent = student.university;
+  successClass.textContent = student.class;
   successSsid.textContent = WIFI_SSID;
   successPassword.textContent = WIFI_PASSWORD;
 
@@ -450,6 +490,8 @@ async function sendWifiEmail(student) {
         student_name: student.name,
         student_email: student.email,
         student_id: student.id,
+        student_university: student.university,
+        student_class: student.class,
         wifi_ssid: WIFI_SSID,
         wifi_password: WIFI_PASSWORD
       };
@@ -594,17 +636,19 @@ function handleCsvExport() {
     return;
   }
 
-  const headers = ['Timestamp', 'Student ID', 'Name', 'Email Address', 'Email Status', 'Dispatched At', 'Error Code'];
+  const headers = ['Timestamp', 'Student ID', 'Name', 'Email Address', 'University', 'Class', 'Email Status', 'Dispatched At', 'Error Code'];
   const rows = registry.map(student => {
     const timestamp = student.timestamp || '';
     const id = `"${student.id.replace(/"/g, '""')}"`;
     const name = `"${student.name.replace(/"/g, '""')}"`;
     const email = `"${student.email.replace(/"/g, '""')}"`;
+    const university = `"${(student.university || '').replace(/"/g, '""')}"`;
+    const className = `"${(student.class || '').replace(/"/g, '""')}"`;
     const status = student.emailSent ? 'Sent' : 'Failed';
     const sentAt = student.emailSentAt || '';
     const error = student.emailError ? `"${student.emailError.replace(/"/g, '""')}"` : '';
 
-    return [timestamp, id, name, email, status, sentAt, error].join(',');
+    return [timestamp, id, name, email, university, className, status, sentAt, error].join(',');
   });
 
   const csvContent = [headers.join(','), ...rows].join('\n');
@@ -725,6 +769,9 @@ function renderRegistryTable() {
         <div class="student-meta">
           <span class="student-name">${student.name}</span>
           <span class="student-id">${student.id} | ${student.email}</span>
+          <span class="student-id" style="color: var(--accent-cyan-hex); font-weight: 500; margin-top: 2px;">
+            <i data-lucide="school" style="width:11px; height:11px; display:inline-block; vertical-align:middle; margin-right:4px;"></i>${student.university || ''} (${student.class || ''})
+          </span>
         </div>
       </td>
       <td>${localTime}</td>

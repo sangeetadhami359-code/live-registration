@@ -162,6 +162,26 @@
               <span id="errorStudentEmail" class="error-text"></span>
             </div>
 
+            <!-- University Name -->
+            <div class="form-group">
+              <label for="studentUniversity">University Name <span>*</span></label>
+              <div class="input-wrapper">
+                <i data-lucide="school" class="input-icon"></i>
+                <input type="text" id="studentUniversity" required placeholder="e.g. Christ University" autocomplete="off">
+              </div>
+              <span id="errorStudentUniversity" class="error-text"></span>
+            </div>
+
+            <!-- Class -->
+            <div class="form-group">
+              <label for="studentClass">Class / Course <span>*</span></label>
+              <div class="input-wrapper">
+                <i data-lucide="graduation-cap" class="input-icon"></i>
+                <input type="text" id="studentClass" required placeholder="e.g. BCA III Sem" autocomplete="off">
+              </div>
+              <span id="errorStudentClass" class="error-text"></span>
+            </div>
+
             <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
               <i data-lucide="check"></i>
               <span>Complete Check-in</span>
@@ -185,6 +205,14 @@
             <div class="success-row">
               <span class="success-label">Email:</span>
               <span id="successEmail" class="success-value-text text-mono">alice@university.edu</span>
+            </div>
+            <div class="success-row">
+              <span class="success-label">University:</span>
+              <span id="successUniversity" class="success-value-text">Christ University</span>
+            </div>
+            <div class="success-row">
+              <span class="success-label">Class:</span>
+              <span id="successClass" class="success-value-text">BCA III Sem</span>
             </div>
             <hr class="success-divider">
             <div class="success-row">
