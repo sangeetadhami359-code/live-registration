@@ -41,7 +41,6 @@ const searchInput = document.getElementById('searchInput');
 const clearSearchBtn = document.getElementById('clearSearchBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 const exportCsvBtn = document.getElementById('exportCsvBtn');
-const quickFillBtn = document.getElementById('quickFillBtn');
 const kioskToggleBtn = document.getElementById('kioskToggleBtn');
 const kioskStatusText = document.getElementById('kioskStatusText');
 
@@ -265,8 +264,6 @@ function bindEventHandlers() {
   closeConfigBtn.addEventListener('click', () => configModal.classList.add('hidden'));
   saveConfigBtn.addEventListener('click', saveEmailConfig);
 
-  // Quick fill mock data
-  quickFillBtn.addEventListener('click', generateMockData);
 
   // Next registration trigger
   registerNextBtn.addEventListener('click', resetSuccessOverlay);
@@ -653,34 +650,6 @@ function resetSuccessOverlay() {
   studentIdInput.focus();
 }
 
-// --- Generate Mock student profiles ---
-function generateMockData() {
-  const firstNames = ['James', 'Emily', 'Sarah', 'Michael', 'Chloe', 'Arjun', 'Sofia', 'David', 'Zoe', 'Marcus'];
-  const lastNames = ['Chen', 'Smith', 'Rodriguez', 'Patel', 'Kim', 'O\'Connor', 'Johnson', 'Müller', 'Al-Farsi', 'Taylor'];
-  const domains = ['university.edu', 'college.ac.in', 'student.net', 'techinstitute.edu'];
-  
-  const randomFirst = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const randomLast = lastNames[Math.floor(Math.random() * lastNames.length)];
-  const randomDomain = domains[Math.floor(Math.random() * domains.length)];
-  
-  const name = `${randomFirst} ${randomLast}`;
-  const email = `${randomFirst.toLowerCase()}.${randomLast.toLowerCase()}@${randomDomain}`;
-  const id = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  studentIdInput.value = id;
-  studentNameInput.value = name;
-  studentEmailInput.value = email;
-
-  // Clear error styling on input
-  document.getElementById('errorStudentId').textContent = '';
-  document.getElementById('errorStudentName').textContent = '';
-  document.getElementById('errorStudentEmail').textContent = '';
-  studentIdInput.classList.remove('input-error');
-  studentNameInput.classList.remove('input-error');
-  studentEmailInput.classList.remove('input-error');
-
-  showToast('success', 'Profile Populated', 'Generated mock student profile.');
-}
 
 // --- Render Table & Lists ---
 function renderRegistry() {
